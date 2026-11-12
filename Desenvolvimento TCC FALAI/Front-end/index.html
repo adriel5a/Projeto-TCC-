@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title> FALAI | Denúncias urbanas de Manaus urbanas de Manaus </title>
+
+  <!-- Leaflet: biblioteca que cria o mapa interativo -->
+  <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+  <!-- Estilos visuais e responsividade do FALAI -->
+  <style>
+   .skip-link{position:absolute;left:12px;top:-60px;background:var(--blue);color:#fff;padding:10px 14px;border-radius:8px;z-index:1000}.skip-link:focus{top:12px}body.more-spacing{letter-spacing:.04em;line-height:1.85}body.more-spacing p,body.more-spacing li{margin-bottom:1em}body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}body.underline-links a{text-decoration:underline!important;text-decoration-thickness:2px!important}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #f59e0b!important;outline-offset:3px!important}
+:root{--bg:#f4f6fb;--card:#fff;--text:#172033;--muted:#64748b;--border:#c3cce0;--blue:#1d4ed8;--soft:#eaf0ff;--scale:1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:calc(16px * var(--scale))/1.5 Arial,sans-serif}body.dark{--bg:#0f172a;--card:#182338;--text:#edf2ff;--muted:#a7b4ca;--border:#3a4964;--soft:#253556}body.contrast{--bg:#000;--card:#000;--text:#fff;--muted:#fff;--border:#fff;--blue:#ff0;--soft:#111}
+header{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);z-index:5}.top{max-width:1150px;margin:auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.brand{font-size:1.2rem;font-weight:bold;color:var(--blue)}.brand small{display:block;color:var(--muted);font-size:.7rem}.nav,.tools{display:flex;gap:6px;flex-wrap:wrap}button{font:inherit;cursor:pointer;border:1px solid var(--border);border-radius:9px;padding:9px 12px;background:var(--card);color:var(--text);font-weight:bold}button:hover,.nav button.active{background:var(--soft);color:var(--blue)}button.primary{background:var(--blue);color:white;border-color:var(--blue)}main{max-width:1150px;margin:auto;padding:24px 20px 50px}.page{display:none}.page.active{display:block}.hero,.columns{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.hero>div,.panel,.stat{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:22px}.hero .intro{background:linear-gradient(130deg,var(--card),var(--soft))}.eyebrow{font-size:.8rem;color:#0e7490;font-weight:bold;text-transform:uppercase}.hero h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.1;margin:10px 0}.muted,.hint{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.stat span{display:block;color:var(--muted)}.stat strong{font-size:1.8rem}.sectionhead{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.sectionhead h2{margin-bottom:0}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}label{font-weight:bold}input,select,textarea{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px}textarea{min-height:100px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}.list{display:grid;gap:10px}.report{padding:13px;border:1px solid var(--border);border-radius:10px;display:flex;justify-content:space-between;gap:12px}.report h3{margin:0 0 5px;font-size:1rem}.report p{margin:3px 0;color:var(--muted);font-size:.9rem}.tag{display:inline-block;background:var(--soft);color:var(--blue);border-radius:20px;padding:3px 8px;font-size:.78rem;font-weight:bold}.red{background:#fee2e2;color:#991b1b}.orange{background:#ffedd5;color:#9a3412}.green{background:#dcfce7;color:#166534}.notice{background:var(--soft);padding:12px;border-radius:9px;margin:12px 0}/* Mapa real (Leaflet + OpenStreetMap) */
+.real-map {
+    height: 400px;
+    width: 100%;
+    min-height: 300px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    z-index: 1;
+}
+
+/* Mantém o mapa responsivo em telas menores */
+@media (max-width: 760px) {
+    .real-map {
+        height: 320px;
+    }
+}.timeline{border-left:3px solid var(--border);padding-left:15px;margin-left:6px;display:grid;gap:15px}.timeline strong{display:block}.empty{padding:20px;text-align:center;color:var(--muted)}.a11y{position:fixed;right:12px;bottom:12px;z-index:9;background:var(--card);border:1px solid var(--border);padding:12px;border-radius:12px;max-width:290px;box-shadow:0 5px 20px #0002}.a11y summary{cursor:pointer;font-weight:bold}.a11y .field{margin:8px 0}.toast{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#172033;color:white;padding:12px 16px;border-radius:9px;z-index:10}.toast.show{display:block}footer{text-align:center;border-top:1px solid var(--border);padding:20px;color:var(--muted)}
+@media(max-width:760px){.hero,.columns{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.top{align-items:flex-start}.nav button{padding:7px}.report{flex-direction:column}}
+  </style>
+ </head>
+ <body>
+
+  <!-- Cabeçalho e navegação principal -->
+  <a class="skip-link" href="#maincontent">
+   Pular para o conteúdo principal
+  </a>
+  <header>
+   <div class="top">
+    <div class="brand">
+     ◈ FALAI
+     <small>
+      Denúncias urbanas de Manaus
+     </small>
+    </div>
+    <nav class="nav">
+     <button class="active" data-page="inicio">
+      Indício
+     </button>
+     <button data-page="mapa">
+      Mapa
+     </button>
+     <button data-page="registrar">
+      Registrar
+     </button>
+     <button data-page="protocolo">
+      Protocolo
+     </button>
+     <button data-page="painel">
+      Painel
+     </button>
+     <button data-page="entrar">
+      Entrar
+     </button>
+    </nav>
+   </div>
+  </header>
+  <!-- Conteúdo principal: páginas Início, Mapa, Registrar, Protocolo, Painel e Entrar -->
+  
+  <main id="maincontent" tabindex="-1">
+   <section class="page active" id="inicio">
+    <div class="hero">
+     <div class="intro">
+      <div class="eyebrow">
+      Participação cidadã
+      </div>
+      <h1>
+       Viu um problema na cidade?
+       <span style="color:var(--blue)">
+        Fala aí.
+       </span>
+      </h1>
+      <p class="muted">
+       Registre problemas urbanos, acompanhe o andamento e ajude a tornar os bairros de Manaus melhores para todos.
+      </p>
+      <button class="primary" data-go="registrar">
+       Registrar denúncia
+      </button>
+      <button data-go="mapa">
+       Explorar mapa
+      </button>
+     </div>
+     <div style="background:var(--blue);color:white">
+      <h2>
+       Uma cidade melhor se constrói junto.
+      </h2>
+      <p>
+       Envie uma ocorrência com descrição e localização para facilitar o encaminhamento.
+      </p>
+      <button data-go="protocolo">
+       Consultar protocolo &rarr;
+      </button>
+     </div>
+    </div>
+    <div class="stats">
+     <div class="stat">
+      <span>
+       Ocorrências registradas
+      </span>
+      <strong id="total">
+       6
+      </strong>
+     </div>
+     <div class="stat">
+      <span>
+       Em andamento
+      </span>
+      <strong id="open">
+       5
+      </strong>
+     </div>
+     <div class="stat">
+      <span>
+       Resolvidas
+      </span>
+      <strong id="done">
+       1
+      </strong>
+     </div>
+    </div>
+    <div class="columns">
+     <div class="panel">
+      <h2>
+       Ocorr&ecirc;ncias recentes
+      </h2>
+      <div class="list" id="recent">
+      </div>
+     </div>
+     <div class="panel">
+      <h2>
+       Como funciona?
+      </h2>
+      <div class="timeline">
+       <div>
+        <strong>
+         1. Registre
+        </strong>
+        <span class="muted">
+         Descreva o problema e informe o bairro.
+        </span>
+       </div>
+       <div>
+        <strong>
+         2. Acompanhe
+        </strong>
+        <span class="muted">
+         Guarde o protocolo para consultar atualizações.
+        </span>
+       </div>
+       <div>
+        <strong>
+         3. Veja o andamento
+        </strong>
+        <span class="muted">
+         A ocorrência pode ser validada, atendida e resolvida.
+        </span>
+       </div>
+      </div>
+      <div class="notice">
+       Prot&oacute;tipo acad&ecirc;mico: os dados ficam salvos somente neste navegador.
+      </div>
+     </div>
+    </div>
+   </section>
+   <section class="page" id="mapa">
+    <div class="sectionhead">
+     <div>
+      <h2>
+       Mapa de ocorrências
+      </h2>
+      <p class="muted">
+       Visualização esquemática de ocorrências em Manaus.
+      </p>
+     </div>
+     <button class="primary" data-go="registrar">
+      + Registrar ocorrência
+     </button>
+    </div>
+    <div class="columns">
+     <!-- Mapa interativo: o Leaflet será carregado neste elemento -->
+     <div aria-label="Mapa interativo de Manaus" class="real-map" id="falai-map" role="application">
+     </div>
+     <div class="panel">
+      <h3>
+       Ocorr&ecirc;ncias
+      </h3>
+      <div class="list" id="maplist">
+      </div>
+      <p class="hint">
+       Mapa interativo com base no OpenStreetMap.
+                    Os marcadores de ocorr&ecirc;ncias ser&atilde;o conectados aos dados do FALAI posteriormente.
+      </p>
+     </div>
+    </div>
+   </section>
+   <section class="page" id="registrar">
+    <h2>
+     Registrar ocorr&ecirc;ncia
+    </h2>
+    <p class="muted">
+     Preenche os dados para criar um protocolo demonstrativo.
+    </p>
+    <div class="columns">
+     <form class="panel" id="reportform">
+      <div class="formgrid">
+       <div class="field">
+        <label for="category">
+         Categoria *
+        </label>
+        <select id="category" required="">
+         <option value="">
+          Selecione
+         </option>
+         <option>
+          Buraco na via
+         </option>
+         <option>
+          Iluminação pública
+         </option>
+         <option>
+          Saneamento
+         </option>
+         <option>
+          Limpeza urbana
+         </option>
+         <option>
+          Outro
+         </option>
+        </select>
+       </div>
+       <div class="field">
+        <label for="severity">
+         Gravidade *
+        </label>
+        <select id="severity">
+         <option>
+          Média
+         </option>
+         <option>
+          Baixa
+         </option>
+         <option>
+          Crítica
+         </option>
+        </select>
+       </div>
+       <div class="field full">
+        <label for="description">
+         Descrição *
+        </label>
+        <textarea id="description" maxlength="700" placeholder="Descreva o problema e pontos de refer&ecirc;ncia..." required=""></textarea>
+       </div>
+       <div class="field">
+        <label for="neighborhood">
+         Bairro *
+        </label>
+        <input id="neighborhood" placeholder="Ex.: Cidade Nova" required=""/>
+       </div>
+       <div class="field">
+        <label for="address">
+         Endere&ccedil;o/refer&ecirc;ncia
+        </label>
+        <input id="address" placeholder="Rua, avenida ou ponto de refer&ecirc;ncia"/>
+       </div>
+       <div class="field full">
+        <label for="photo">
+         Foto (opcional)
+        </label>
+        <input accept="image/*" id="photo" type="file"/>
+        <span class="hint">
+         A imagem n&atilde;o &eacute; enviada para servidor.
+        </span>
+       </div>
+      </div>
+      <button class="primary">
+       Enviar ocorr&ecirc;ncia
+      </button>
+      <button type="reset">
+       Limpar
+      </button>
+      <p class="hint">
+       N&atilde;o informe dados pessoais desnecess&aacute;rios.
+      </p>
+     </form>
+     <div class="panel">
+      <h3>
+       Etapas do registro
+      </h3>
+      <div class="timeline">
+       <div>
+        <strong>
+         Registrado
+        </strong>
+        O protocolo &eacute; criado.
+       </div>
+       <div>
+        <strong>
+         Validado
+        </strong>
+        A ocorr&ecirc;ncia &eacute; revisada.
+       </div>
+       <div>
+        <strong>
+         Em atendimento
+        </strong>
+        O problema est&aacute; sendo tratado.
+       </div>
+       <div>
+        <strong>
+         Resolvido
+        </strong>
+        O atendimento &eacute; conclu&iacute;do.
+       </div>
+      </div>
+     </div>
+    </div>
+   </section>
+   <section class="page" id="protocolo">
+    <h2>
+     Consultar protocolo
+    </h2>
+    <p class="muted">
+     Consulta registros salvos neste navegador.
+    </p>
+    <div class="columns">
+     <form class="panel" id="searchform">
+      <div class="field">
+       <label for="code">
+        N&uacute;mero do protocolo
+       </label>
+       <input id="code" placeholder="FAL-2026-00482" required=""/>
+      </div>
+      <button class="primary">
+       Consultar
+      </button>
+      <p class="hint">
+       Exemplos: FAL-2026-00482 at&eacute; FAL-2026-00487.
+      </p>
+     </form>
+     <div class="panel" id="result">
+      <div class="empty">
+       Digite um protocolo para consultar.
+      </div>
+     </div>
+    </div>
+   </section>
+   <section class="page" id="painel">
+    <div class="sectionhead">
+     <div>
+      <h2>
+       Painel de ocorr&ecirc;ncias
+      </h2>
+      <p class="muted">
+       Atualize o status para demonstrar o fluxo.
+      </p>
+     </div>
+     <button id="export">
+      Exportar CSV
+     </button>
+    </div>
+    <div class="stats">
+     <div class="stat">
+      <span>
+       Total
+      </span>
+      <strong id="dtotal">
+       6
+      </strong>
+     </div>
+     <div class="stat">
+      <span>
+       Pendentes
+      </span>
+      <strong id="dopen">
+       5
+      </strong>
+     </div>
+     <div class="stat">
+      <span>
+       Resolvidas
+      </span>
+      <strong id="ddone">
+       1
+      </strong>
+     </div>
+    </div>
+    <div class="panel">
+     <div class="tools">
+      <input id="filter" placeholder="Filtrar por protocolo, bairro ou categoria" style="max-width:400px"/>
+      <select id="statusfilter" style="max-width:210px">
+       <option value="">
+        Todos os status
+       </option>
+       <option>
+        Registrado
+       </option>
+       <option>
+        Validado
+       </option>
+       <option>
+        Em Atendimento
+       </option>
+       <option>
+        Resolvido
+       </option>
+      </select>
+     </div>
+     <br/>
+     <div class="list" id="dashboard">
+     </div>
+     <p class="hint">
+      N&atilde;o existe backend nem autentica&ccedil;&atilde;o real nesta vers&atilde;o.
+     </p>
+    </div>
+   </section>
+   <section class="page" id="entrar">
+    <h2>
+     Entrar / criar conta
+    </h2>
+    <p class="muted">
+     Tela demonstrativa de acesso.
+    </p>
+    <div class="columns">
+     <form class="panel" id="loginform">
+      <h3 id="logintitle">
+       Entrar
+      </h3>
+      <div class="field">
+       <label for="email">
+        E-mail
+       </label>
+       <input id="email" placeholder="voce@exemplo.com" required="" type="email"/>
+      </div>
+      <div class="field">
+       <label for="password">
+        Senha
+       </label>
+       <input id="password" minlength="4" placeholder="Senha de teste" required="" type="password"/>
+      </div>
+      <div class="field" hidden="" id="namefield">
+       <label for="fullname">
+        Nome
+       </label>
+       <input id="fullname" placeholder="Seu nome"/>
+      </div>
+      <button class="primary" id="loginbutton">
+       Entrar (demo)
+      </button>
+      <p class="hint" id="loginmsg">
+       O acesso &eacute; apenas visual; n&atilde;o use senha real.
+      </p>
+      <button id="toggle" type="button">
+       Quero criar uma conta
+      </button>
+     </form>
+     <div class="panel">
+      <h3>
+       Sobre a seguran&ccedil;a
+      </h3>
+      <p class="muted">
+       A vers&atilde;o real precisa de API, armazenamento seguro de senhas e autoriza&ccedil;&atilde;o no servidor. Esta vers&atilde;o n&atilde;o autentica usu&aacute;rios.
+      </p>
+      <div class="notice">
+       Os dados deste prot&oacute;tipo ficam no armazenamento local do navegador.
+      </div>
+     </div>
+    </div>
+   </section>
+  </main>
+  <footer>
+   FALAI &middot; Prot&oacute;tipo acad&ecirc;mico de den&uacute;ncias urbanas de Manaus &middot; Dados demonstrativos
+  </footer>
+  <!-- Ferramentas de acessibilidade -->
+  \n
+  <div class="a11y">
+   <details>
+    <summary>
+     ♿ Acessibilidade
+    </summary>
+    <div class="field">
+     <label for="fontsize">
+      Tamanho do texto
+     </label>
+     <input id="fontsize" max="160" min="85" type="range" value="100"/>
+     <span id="fontlabel">
+      100%
+     </span>
+    </div>
+    <div class="field">
+     <label for="fontchoice">
+      Tipo de fonte
+     </label>
+     <select id="fontchoice">
+      <option value="Arial, sans-serif">
+       Arial (padr&atilde;o)
+      </option>
+      <option value="Verdana, sans-serif">
+       Verdana
+      </option>
+      <option value="Tahoma, sans-serif">
+       Tahoma
+      </option>
+      <option value="Georgia, serif">
+       Georgia
+      </option>
+     </select>
+    </div>
+    <div class="field">
+     <label for="theme">
+      Tema
+     </label>
+     <select id="theme">
+      <option value="light">
+       Claro
+      </option>
+      <option value="dark">
+       Escuro
+      </option>
+     </select>
+    </div>
+    <div class="field">
+     <label>
+      <input id="contrast" style="width:auto" type="checkbox"/>
+      Alto contraste
+     </label>
+     <label>
+      <input id="spacing" style="width:auto" type="checkbox"/>
+      Mais espa&ccedil;amento
+     </label>
+     <label>
+      <input id="motion" style="width:auto" type="checkbox"/>
+      Reduzir anima&ccedil;&otilde;es
+     </label>
+     <label>
+      <input id="underlines" style="width:auto" type="checkbox"/>
+      Sublinhado em links
+     </label>
+    </div>
+    <div class="tools">
+     <button id="read">
+      🔊 Ler t&iacute;tulo
+     </button>
+     <button id="stop">
+      Parar leitura
+     </button>
+     <button id="reset">
+      Redefinir
+     </button>
+    </div>
+    <p class="hint">
+     As op&ccedil;&otilde;es ajudam na leitura e navega&ccedil;&atilde;o. A leitura por voz depende do suporte do navegador.
+    </p>
+   </details>
+  </div>
+  <div class="toast" id="toast" role="status">
+  </div>
+  <!-- Leaflet JavaScript: necessário para inicializar o mapa -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+   const seed=[
+{protocol:"FAL-2026-00482",category:"Buraco na via",severity:"Crítica",status:"Em Atendimento",neighborhood:"Cidade Nova",address:"Av. Noel Nutels",description:"Buraco grande próximo à parada de ônibus.",date:"2026-10-12"},
+{protocol:"FAL-2026-00483",category:"Iluminação pública",severity:"Média",status:"Validado",neighborhood:"Compensa",address:"Rua da Prosperidade",description:"Poste com lâmpada apagada.",date:"2026-10-11"},
+{protocol:"FAL-2026-00484",category:"Saneamento",severity:"Crítica",status:"Registrado",neighborhood:"Alvorada",address:"Próximo à praça",description:"Água acumulada e possível problema de drenagem.",date:"2026-10-10"},
+{protocol:"FAL-2026-00485",category:"Limpeza urbana",severity:"Baixa",status:"Resolvido",neighborhood:"Centro",address:"Rua dos Andradas",description:"Acúmulo de resíduos em calçada.",date:"2026-10-09"},
+{protocol:"FAL-2026-00486",category:"Buraco na via",severity:"Média",status:"Em Atendimento",neighborhood:"Japiim",address:"Av. Rodrigo Otávio",description:"Desnível na pista próximo ao cruzamento.",date:"2026-10-08"},
+{protocol:"FAL-2026-00487",category:"Iluminação pública",severity:"Baixa",status:"Registrado",neighborhood:"Educandos",address:"Rua Inocêncio de Araújo",description:"Iluminação fraca em poste da via.",date:"2026-10-07"}];
+const $=s=>document.querySelector(s);let data;try{data=JSON.parse(localStorage.getItem("falai-data"))||seed.map(x=>({...x}))}catch(e){data=seed.map(x=>({...x}))}
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function save(){try{localStorage.setItem("falai-data",JSON.stringify(data))}catch(e){}}
+function toast(s){$("#toast").textContent=s;$("#toast").classList.add("show");setTimeout(()=>$("#toast").classList.remove("show"),3000)}
+function badge(s){return `<span class="tag ${s==="Crítica"?"red":s==="Média"?"orange":s==="Resolvido"?"green":""}">${esc(s)}</span>`}
+function item(r,admin=false){return `<article class="report"><div><h3>${esc(r.category)} ${badge(r.severity)}</h3><p><b>${esc(r.protocol)}</b> · ${esc(r.neighborhood)}</p><p>${esc(r.description)}</p><p>${esc(r.address)} · ${esc(r.date)}</p>${badge(r.status)}</div>${admin?`<div style="min-width:150px"><label for="s-${r.protocol}">Status</label><select id="s-${r.protocol}" data-status="${r.protocol}">${["Registrado","Validado","Em Atendimento","Resolvido"].map(s=>`<option ${s===r.status?"selected":""}>${s}</option>`).join("")}</select></div>`:""}</article>`}
+function render(){let done=data.filter(r=>r.status==="Resolvido").length,open=data.length-done;["#total","#dtotal"].forEach(s=>$(s).textContent=data.length);["#open","#dopen"].forEach(s=>$(s).textContent=open);["#done","#ddone"].forEach(s=>$(s).textContent=done);$("#recent").innerHTML=data.slice(0,4).map(r=>item(r)).join("");$("#maplist").innerHTML=data.slice(0,5).map(r=>`<div><b>${esc(r.neighborhood)}</b><div class="hint">${esc(r.category)} · ${esc(r.status)}</div></div>`).join("");let q=($("#filter")?.value||"").toLowerCase(),st=$("#statusfilter")?.value||"";$("#dashboard").innerHTML=data.filter(r=>(!q||Object.values(r).join(" ").toLowerCase().includes(q))&&(!st||r.status===st)).map(r=>item(r,true)).join("")||'<div class="empty">Nenhuma ocorrência encontrada.</div>'}
+function go(id) {
+    // Alterna a página visível da aplicação
+    document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === id));
+    document.querySelectorAll("[data-page]").forEach(b => b.classList.toggle("active", b.dataset.page === id));
+    window.scrollTo(0, 0);
+
+    // Atualiza o tamanho do mapa quando a página Mapa é aberta
+    if (id === "mapa") {
+        setTimeout(() => mapaFalai.invalidateSize(), 100);
+    }
+
+    // Atualiza os dados do painel administrativo
+    if (id === "painel") render();
+}
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>go(b.dataset.page));document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+$("#reportform").onsubmit=e=>{e.preventDefault();let num=Math.max(487,...data.map(r=>Number(r.protocol.slice(-5))||0))+1;let r={protocol:"FAL-2026-"+String(num).padStart(5,"0"),category:$("#category").value,severity:$("#severity").value,status:"Registrado",neighborhood:$("#neighborhood").value.trim(),address:$("#address").value.trim()||"Endereço não informado",description:$("#description").value.trim(),date:new Date().toISOString().slice(0,10)};data.unshift(r);save();render();e.target.reset();$("#code").value=r.protocol;$("#result").innerHTML=details(r);go("protocolo");toast("Ocorrência registrada: "+r.protocol)};
+function details(r){return `<h3>${esc(r.protocol)}</h3>${badge(r.status)}<p><b>Categoria:</b> ${esc(r.category)}</p><p><b>Gravidade:</b> ${esc(r.severity)}</p><p><b>Local:</b> ${esc(r.neighborhood)} — ${esc(r.address)}</p><p><b>Data:</b> ${esc(r.date)}</p><p>${esc(r.description)}</p><div class="timeline"><div><strong>Registrado</strong>${esc(r.date)}</div><div><strong>Status atual</strong>${esc(r.status)}</div></div>`}
+$("#searchform").onsubmit=e=>{e.preventDefault();let r=data.find(x=>x.protocol.toLowerCase()===$("#code").value.trim().toLowerCase());$("#result").innerHTML=r?details(r):'<div class="empty">Protocolo não encontrado neste navegador.</div>'};
+$("#dashboard").onchange=e=>{let code=e.target.dataset.status;if(!code)return;let r=data.find(x=>x.protocol===code);if(r){r.status=e.target.value;save();render();toast("Status atualizado.")}};$("#filter").oninput=render;$("#statusfilter").onchange=render;
+$("#export").onclick=()=>{let rows=[["Protocolo","Categoria","Gravidade","Status","Bairro","Endereço","Descrição","Data"],...data.map(r=>[r.protocol,r.category,r.severity,r.status,r.neighborhood,r.address,r.description,r.date])];let csv=rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download="falai-ocorrencias.csv";a.click();URL.revokeObjectURL(a.href)};
+let register=false;$("#toggle").onclick=()=>{register=!register;$("#namefield").hidden=!register;$("#fullname").required=register;$("#logintitle").textContent=register?"Criar conta (demo)":"Entrar";$("#loginbutton").textContent=register?"Criar conta (demo)":"Entrar (demo)";$("#toggle").textContent=register?"Já tenho conta":"Quero criar uma conta"};
+$("#loginform").onsubmit=e=>{e.preventDefault();$("#loginmsg").textContent="Modo de demonstração para "+$("#email").value+". Nenhuma conta real foi criada.";toast("Modo demonstrativo.")};
+function saveA11y(){try{localStorage.setItem("falai-a11y-settings",JSON.stringify({size:$("#fontsize").value,font:$("#fontchoice").value,theme:$("#theme").value,contrast:$("#contrast").checked,spacing:$("#spacing").checked,motion:$("#motion").checked,underlines:$("#underlines").checked}))}catch(e){}}
+function applyA11y(){document.documentElement.style.setProperty("--scale",$("#fontsize").value/100);$("#fontlabel").textContent=$("#fontsize").value+"%";document.body.style.fontFamily=$("#fontchoice").value;document.body.classList.toggle("dark",$("#theme").value==="dark");document.body.classList.toggle("contrast",$("#contrast").checked);document.body.classList.toggle("more-spacing",$("#spacing").checked);document.body.classList.toggle("reduce-motion",$("#motion").checked);document.body.classList.toggle("underline-links",$("#underlines").checked);saveA11y()}
+try{const pref=JSON.parse(localStorage.getItem("falai-a11y-settings")||"null");if(pref){$("#fontsize").value=pref.size||100;$("#fontchoice").value=pref.font||"Arial, sans-serif";$("#theme").value=pref.theme||"light";$("#contrast").checked=!!pref.contrast;$("#spacing").checked=!!pref.spacing;$("#motion").checked=!!pref.motion;$("#underlines").checked=!!pref.underlines}}catch(e){}
+["fontsize","fontchoice","theme","contrast","spacing","motion","underlines"].forEach(id=>$("#"+id).addEventListener("input",applyA11y));applyA11y();
+$("#read").onclick=()=>{if("speechSynthesis"in window){speechSynthesis.cancel();const text=document.querySelector(".page.active h1,.page.active h2")?.textContent||"FALAI";const utterance=new SpeechSynthesisUtterance(text);utterance.lang="pt-BR";speechSynthesis.speak(utterance)}else toast("Leitura de voz indisponível neste navegador")};
+$("#stop").onclick=()=>{if("speechSynthesis"in window)speechSynthesis.cancel()};
+$("#reset").onclick=()=>{$("#fontsize").value=100;$("#fontchoice").value="Arial, sans-serif";$("#theme").value="light";$("#contrast").checked=false;$("#spacing").checked=false;$("#motion").checked=false;$("#underlines").checked=false;applyA11y();toast("Opções de acessibilidade redefinidas")};
+
+// --------------------------------------------------
+// MAPA INTERATIVO: Manaus com Leaflet + OpenStreetMap
+// --------------------------------------------------
+
+// Coordenadas aproximadas do centro de Manaus
+const coordenadasManaus = [-3.1190, -60.0217];
+
+// Cria o mapa dentro da div com id "falai-map"
+const mapaFalai = L.map("falai-map").setView(coordenadasManaus, 12);
+
+// Carrega as imagens (tiles) do mapa do OpenStreetMap
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+}).addTo(mapaFalai);
+
+// Marcador demonstrativo no centro de Manaus
+L.marker(coordenadasManaus)
+    .addTo(mapaFalai)
+    .bindPopup("<strong>Manaus - AM</strong><br>Mapa do FALAI");
+
+// --------------------------------------------------
+// Inicialização do protótipo
+// --------------------------------------------------
+
+render();
+  </script>
+ </body>
+</html>
